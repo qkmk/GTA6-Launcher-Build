@@ -12,7 +12,7 @@ on:
       source_branch:
         type: string
         required: false
-        default: a-publier
+        default: ''
 
 permissions:
   contents: read
