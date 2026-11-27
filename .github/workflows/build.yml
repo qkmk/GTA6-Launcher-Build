@@ -29,7 +29,11 @@ on:
         options:
           - x86-64-v3
           - x86-64
-
+      source_branch:
+        description: Upstream branch / 留空使用上游默认分支
+        type: string
+        required: false
+        default: ''
 permissions:
   contents: read
 
