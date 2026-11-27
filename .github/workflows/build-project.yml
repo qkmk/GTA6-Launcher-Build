@@ -9,6 +9,10 @@ on:
       cpu_target:
         type: string
         default: x86-64-v3
+      source_branch:
+        type: string
+        required: false
+        default: a-publier
 
 permissions:
   contents: read
