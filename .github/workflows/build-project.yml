@@ -40,10 +40,11 @@ jobs:
       run:
         shell: pwsh
     steps:
-      - name: Resolve the latest upstream default-branch commit
+      - name: Resolve the requested upstream branch commit
         id: source
         env:
           GH_TOKEN: ${{ github.token }}
+          SOURCE_BRANCH_INPUT: ${{ inputs.source_branch }}
         run: |
           $ErrorActionPreference = 'Stop'
           $allowed = @('Marvisak/VIctory', 'xcl-dev/xcl', 'fxceless/victory-fork', 'Zettrox/ztrx', 'uiliannn/VItoriaBr', 'Belobug/VIctory-Belobug-AMD', 'DexNom/VIctory', 'avatarmanz/VIctory-7900XTX', 'carlm125/cool_fox', 'stellarr-studio/kelvaroq', 'LooperSalty/AnyXboxX', 'trustno1-coder/VIctory-NVIDIA')
@@ -54,7 +55,19 @@ jobs:
           $url = "$env:GITHUB_API_URL/repos/$env:UPSTREAM"
           try {
               $repo = Invoke-RestMethod -Uri $url -Headers $headers
-              $branch = [Uri]::EscapeDataString($repo.default_branch)
+
+              # Use requested branch; fall back to upstream default branch.
+              $branchName = $env:SOURCE_BRANCH_INPUT.Trim()
+
+              if ([string]::IsNullOrWhiteSpace($branchName)) {
+                  $branchName = $repo.default_branch
+              }
+
+              if ($branchName -match '[\r\n]') {
+                  throw 'Invalid source branch name.'
+              }
+
+              $branch = [Uri]::EscapeDataString($branchName)
               $commit = Invoke-RestMethod -Uri "$url/commits/$branch" -Headers $headers
           } catch {
               if ([int]$_.Exception.Response.StatusCode -ne 404) { throw }
@@ -79,8 +92,8 @@ jobs:
           "available=true" >> $env:GITHUB_OUTPUT
           if ($commit.sha -notmatch '^[0-9a-f]{40}$') { throw 'Invalid upstream SHA.' }
           "sha=$($commit.sha)" >> $env:GITHUB_OUTPUT
-          "branch=$($repo.default_branch)" >> $env:GITHUB_OUTPUT
-          "id=$($env:UPSTREAM.Replace('/', '-'))" >> $env:GITHUB_OUTPUT
+          "branch=$branchName" >> $env:GITHUB_OUTPUT
+          Write-Host "Building $env:UPSTREAM@$($commit.sha) from $branchName"
           Write-Host "Building $env:UPSTREAM@$($commit.sha) from $($repo.default_branch)"
 
       - name: Check out exactly the resolved upstream SHA
