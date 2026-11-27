@@ -74,6 +74,7 @@ jobs:
     with:
       upstream: ${{ matrix.upstream }}
       cpu_target: ${{ inputs.cpu_target }}
+      source_branch: ${{ inputs.source_branch }}
 
   publish:
     name: Publish one combined Release / 统一发布
